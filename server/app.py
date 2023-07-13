@@ -294,13 +294,23 @@ BOOKS = [
         'author': 'Coleridge',
         'read': True
     },
+    {
+        'id': uuid.uuid4().hex,
+        'title': 'romromio sulite',
+        'author': 'RR',
+        'read': True
+    },
 
 
 ]
 
+
+bookcount = len(BOOKS)
+
 @app.route('/books', methods=['GET', 'POST'])
 def all_books():
     response_object = {'status': 'success'}
+    
     if request.method == 'POST':
         post_data = request.get_json()
         BOOKS.append({
@@ -309,14 +319,24 @@ def all_books():
             'author': post_data.get('author'),
             'read': post_data.get('read')
         })
+        global bookcount
+        bookcount += 1
         response_object['message'] = 'Book added!'
     else:
-        response_object['books'] = BOOKS
+        start = int(request.args.get('start', 0))
+        end = int(request.args.get('end', len(BOOKS)))
+
+        books_slice = BOOKS[start:end]
+
+        response_object['books'] = books_slice
+        response_object['bookcount'] = bookcount
+
     return jsonify(response_object)
 
 @app.route('/books/<book_id>', methods=['PUT', 'DELETE'])
 def single_book(book_id):
     response_object = {'status': 'success'}
+    
     if request.method == 'PUT':
         post_data = request.get_json()
         remove_book(book_id)
@@ -329,10 +349,14 @@ def single_book(book_id):
         response_object['message'] = 'Book updated!'
     elif request.method == 'DELETE':
         if remove_book(book_id):
+            global bookcount
+            bookcount -= 1
             response_object['message'] = 'Book removed!'
         else:
             response_object['status'] = 'error'
             response_object['message'] = 'Book not found!'
+    
+    response_object['bookcount'] = bookcount
     return jsonify(response_object)
 
 def remove_book(book_id):

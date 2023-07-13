@@ -3,6 +3,7 @@
     <div class="row">
       <div class="col-sm-10">
         <h1>Books</h1>
+        <h3>Total Books: {{ totalBooks }}</h3>
         <AlertPath :message="message" v-if="showMessage" />
         <hr /><br /><br />
         <router-link
@@ -265,9 +266,12 @@ export default {
   components: {
     AlertPath,
   },
-  computed: {
+computed: {
+    totalBooks() {
+      return this.books.length;
+    },
     paginatedBooks() {
-      const startIndex = (this.currentPage - 1) * this.pageSize;
+      const startIndex =(this.currentPage - 1) * this.pageSize;
       const endIndex = startIndex + this.pageSize;
       return this.books.slice(startIndex, endIndex);
     },
@@ -292,9 +296,7 @@ export default {
         });
     },
     getBooks() {
-      const startIndex = (this.currentPage - 1) * this.pageSize;
-      const endIndex = startIndex + this.pageSize;
-      const path = `http://localhost:5000/books?startIndex=${startIndex}&endIndex=${endIndex}`;
+      const path = 'http://localhost:5000/books';
 
       axios
         .get(path)

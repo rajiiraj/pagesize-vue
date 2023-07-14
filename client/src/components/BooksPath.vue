@@ -3,7 +3,8 @@
     <div class="row">
       <div class="col-sm-10">
         <h1>Books</h1>
-        <h3>Total Books: {{ totalBooks }}</h3>
+            <h3>Books on this Page: {{ booksOnPage }}</h3>
+
         <AlertPath :message="message" v-if="showMessage" />
         <hr /><br /><br />
         <router-link
@@ -266,12 +267,17 @@ export default {
   components: {
     AlertPath,
   },
-computed: {
+ computed: {
+    booksOnPage() {
+      const startIndex = (this.currentPage - 1) * this.pageSize;
+      const endIndex = startIndex + this.pageSize;
+      return this.books.slice(startIndex, endIndex).length;
+    },
     totalBooks() {
       return this.books.length;
     },
     paginatedBooks() {
-      const startIndex =(this.currentPage - 1) * this.pageSize;
+      const startIndex = (this.currentPage - 1) * this.pageSize;
       const endIndex = startIndex + this.pageSize;
       return this.books.slice(startIndex, endIndex);
     },
@@ -295,18 +301,24 @@ computed: {
           this.getBooks();
         });
     },
-    getBooks() {
-      const path = 'http://localhost:5000/books';
+  getBooks() {
+  const path = 'http://localhost:5000/books';
+  const params = {
+    page: this.currentPage,
+    pageSize: this.pageSize
+  };
 
-      axios
-        .get(path)
-        .then((res) => {
-          this.books = res.data.books;
-        })
-        .catch((error) => {
-          console.error(error);
-        });
-    },
+  axios
+    .get(path, { params })
+    .then((res) => {
+      this.books = res.data.books;
+      this.totalBooks = res.data.totalBooks;
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+},
+
     handleAddReset() {
       this.initForm();
       this.$router.push('/books/addbook');

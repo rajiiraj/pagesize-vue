@@ -230,6 +230,7 @@
         Next
       </button>
     </div>
+    
   </div>
 </template>
 
@@ -238,51 +239,57 @@ import axios from 'axios';
 import AlertPath from './AlertPath.vue';
 
 export default {
-  data() {
-    return {
-      activeAddBookModal: false,
-      activeEditBookModal: false,
-      showDeleteConfirmationModal: false,
-      addBookForm: {
-        title: '',
-        author: '',
-        read: [],
-        titleTouched: false,
-        authorTouched: false,
-      },
-      editBookForm: {
-        id: '',
-        title: '',
-        author: '',
-        read: [],
-      },
-      deleteBook: null,
-      books: [],
-      message: '',
-      showMessage: false,
-      currentPage: 1,
-      pageSize: 10,
-    };
-  },
+    name: 'BooksPath', 
+
+data() {
+  return {
+    activeAddBookModal: false,
+    activeEditBookModal: false,
+    showDeleteConfirmationModal: false,
+    addBookForm: {
+      title: '',
+      author: '',
+      read: [],
+      titleTouched: false,
+      authorTouched: false,
+    },
+    editBookForm: {
+      id: '',
+      title: '',
+      author: '',
+      read: [],
+    },
+    deleteBook: null,
+    books: [],
+    message: '',
+    showMessage: false,
+    currentPage: 1,
+    pageSize: 10,
+          totalBooks: 0,
+
+  };
+},
+  
   components: {
     AlertPath,
   },
  computed: {
     booksOnPage() {
-      const startIndex = (this.currentPage - 1) * this.pageSize;
-      const endIndex = startIndex + this.pageSize;
-      return this.books.slice(startIndex, endIndex).length;
-    },
+  return this.paginatedBooks.length;
+},
+
     totalBooks() {
-      return this.books.length;
-    },
-    paginatedBooks() {
-      const startIndex = (this.currentPage - 1) * this.pageSize;
-      const endIndex = startIndex + this.pageSize;
-      return this.books.slice(startIndex, endIndex);
-    },
+    return this.books.length;
+  },
+ paginatedBooks() {
+  // const startIndex = (this.currentPage - 1) * this.pageSize;
+  // const endIndex = startIndex + this.pageSize;
+  // return this.books.slice(startIndex, endIndex);
+  return this.books
+},
+
     totalPages() {
-      return Math.ceil(this.books.length / this.pageSize);
+      return Math.ceil(this.totalBooks / this.pageSize);
     },
   },
   methods: {
@@ -301,25 +308,28 @@ export default {
           this.getBooks();
         });
     },
-  getBooks() {
+
+   getBooks() {
   const path = 'http://localhost:5000/books';
   const params = {
     page: this.currentPage,
-    pageSize: this.pageSize
+
   };
 
   axios
     .get(path, { params })
     .then((res) => {
+      console.log('API Response:', res.data);
       this.books = res.data.books;
-      this.totalBooks = res.data.totalBooks;
+      this.totalBooks = res.data.bookcount; // Update the totalBooks property
     })
     .catch((error) => {
       console.error(error);
     });
 },
 
-    handleAddReset() {
+
+ handleAddReset() {
       this.initForm();
       this.$router.push('/books/addbook');
     },
@@ -367,33 +377,33 @@ export default {
       this.$router.push('/books/list');
 
     },
-    handleDeleteBook(book) {
-      this.deleteBook = book;
-      this.showDeleteConfirmationModal = true;
-    },
-    handleDeleteConfirmation() {
-      this.showDeleteConfirmationModal = false;
-      const bookID = this.deleteBook.id;
-      this.removeBook(bookID);
-    },
+  handleDeleteBook(book) {
+  this.deleteBook = book;
+  this.showDeleteConfirmationModal = true;
+},
+handleDeleteConfirmation() {
+  this.showDeleteConfirmationModal = false;
+  const bookID = this.deleteBook.id;
+  this.removeBook(bookID);
+},
     handleDeleteCancel() {
       this.showDeleteConfirmationModal = false;
       this.$router.push('/books/list');
     },
-    removeBook(bookID) {
-      const path = `http://localhost:5000/books/${bookID}`;
-      axios
-        .delete(path)
-        .then(() => {
-          this.getBooks();
-          this.message = 'Book removed!';
-          this.showMessage = true;
-        })
-        .catch((error) => {
-          console.error(error);
-          this.getBooks();
-        });
-    },
+   removeBook(bookID) {
+  const path = `http://localhost:5000/books/${bookID}`;
+  axios
+    .delete(path)
+    .then(() => {
+      this.getBooks();
+      this.message = 'Book removed!';
+      this.showMessage = true;
+    })
+    .catch((error) => {
+      console.error(error);
+      this.getBooks();
+    });
+},
     initForm() {
       this.addBookForm.title = '';
       this.addBookForm.author = '';
@@ -438,12 +448,13 @@ export default {
           this.getBooks();
         });
     },
-    nextPage() {
+  nextPage() {
       if (this.currentPage < this.totalPages) {
         this.currentPage++;
         this.getBooks();
       }
     },
+
     previousPage() {
       if (this.currentPage > 1) {
         this.currentPage--;

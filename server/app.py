@@ -304,23 +304,26 @@ BOOKS = [
 
 ]
 
-
-
-
-
 @app.route('/books', methods=['GET'])
 def get_books():
-    start = int(request.args.get('start', 0))
-    end = int(request.args.get('end', len(BOOKS)))
+    page = int(request.args.get('page'))
+    page_size = int(request.args.get('pageSize', 10))
 
-    books_slice = BOOKS[start:end]
+    # start_index = (page - 1) * page_size
+    # end_index = start_index + page_size
+    start_index = (page - 1) * page_size
+    end_index = (page - 1 ) * page_size + page_size
+    paginated_books = BOOKS[start_index:end_index]
 
     response_object = {
         'status': 'success',
-        'books': books_slice,
-        'bookcount': len(books_slice)
+        'books': paginated_books,
+        'bookcount': len(BOOKS)
     }
     return jsonify(response_object)
+
+
+
 
 @app.route('/books', methods=['POST'])
 def add_book():
@@ -341,12 +344,10 @@ def add_book():
     return jsonify(response_object)
 
 
-
-
 @app.route('/books/<book_id>', methods=['PUT', 'DELETE'])
 def single_book(book_id):
     response_object = {'status': 'success'}
-    
+
     if request.method == 'PUT':
         post_data = request.get_json()
         remove_book(book_id)
@@ -363,9 +364,10 @@ def single_book(book_id):
         else:
             response_object['status'] = 'error'
             response_object['message'] = 'Book not found!'
-    
+
     response_object['bookcount'] = len(BOOKS)
     return jsonify(response_object)
+
 
 def remove_book(book_id):
     for book in BOOKS:
@@ -373,6 +375,7 @@ def remove_book(book_id):
             BOOKS.remove(book)
             return True
     return False
+
 
 if __name__ == '__main__':
     app.run()

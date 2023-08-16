@@ -20,7 +20,7 @@
           <thead>
             <tr>
               <th scope="col">heading</th>
-              <th scope="col">Author</th>
+              <th scope="col">writter</th>
               <th scope="col">Read?</th>
               <th></th>
             </tr>
@@ -28,6 +28,7 @@
           <tbody>
             <tr v-for="(book, index) in paginatedBooks" :key="index">
               <td>{{ book.title }}</td>
+              
               <td>{{ book.author }}</td>
               <td>
                 <span v-if="book.read">Yes</span>
